@@ -405,7 +405,8 @@ def create_encoder_config(args: argparse.Namespace,
             max_seq_len_target=max_seq_len_target,
             conv_config=config_conv,
             lhuc=args.lhuc is not None and (C.LHUC_ENCODER in args.lhuc or C.LHUC_ALL in args.lhuc,),
-            universal=args.universal_transformer
+            universal=args.universal_transformer,
+            use_soft_act=args.use_soft_act,
         )
         encoder_num_hidden = encoder_transformer_model_size
     elif args.encoder == C.CONVOLUTION_TYPE:
