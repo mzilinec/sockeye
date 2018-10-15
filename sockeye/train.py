@@ -482,7 +482,9 @@ def create_decoder_config(args: argparse.Namespace, encoder_num_hidden: int,
             max_seq_len_target=max_seq_len_target,
             conv_config=None,
             lhuc=args.lhuc is not None and (C.LHUC_DECODER in args.lhuc or C.LHUC_ALL in args.lhuc),
-            universal=args.universal_transformer)
+            universal=args.universal_transformer,
+            use_soft_act=args.use_soft_act,
+        )
 
     elif args.decoder == C.CONVOLUTION_TYPE:
         if args.decoder_only:

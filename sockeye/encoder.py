@@ -1026,8 +1026,8 @@ class TransformerEncoder(Encoder):
                                                                  dropout=config.dropout_prepost,
                                                                  prefix="%sfinal_process_" % prefix)
         if self.config.use_soft_act:
-            self.act_weights = mx.sym.Variable("act_select_weight")
-            self.act_bias = mx.sym.Variable("act_select_bias")
+            self.act_weights = mx.sym.Variable("%sact_select_weight" % self.prefix)
+            self.act_bias = mx.sym.Variable("%sact_select_bias" % self.prefix)
 
     def encode(self,
                data: mx.sym.Symbol,
@@ -1059,7 +1059,7 @@ class TransformerEncoder(Encoder):
                 # (batch_size, seq_len, config.model_size)
                 y_i = layer(data, bias)
                 # (batch_size, seq_len, 1)
-                p_i = mx.sym.FullyConnected(y_i, weight=self.act_weights, bias=self.act_bias, num_hidden=1, flatten=False, name='act_end_prob_%d' % i)
+                p_i = mx.sym.FullyConnected(y_i, weight=self.act_weights, bias=self.act_bias, num_hidden=1, flatten=False, name='%sact_end_prob_%d' % (self.prefix, i))
                 p_i = mx.sym.sigmoid(p_i)
 
                 outputs.append(y_i)    # outputs (states) of the encoder
@@ -1067,12 +1067,12 @@ class TransformerEncoder(Encoder):
                 data = y_i
 
             act_probs = mx.sym.stack(*act_probs, axis=-2)   # (batch_size, seq_len, n_layers)
-            act_probs = mx.sym.softmax(act_probs, axis=-2, name="soft_act_softmax")  # normalize to probability distribution TODO log and check
+            act_probs = mx.sym.softmax(act_probs, axis=-2, name="%ssoft_act_softmax" % self.prefix)
             enc_states = mx.sym.stack(*outputs, axis=-2)  # (batch_size, seq_len, n_layers, mem_size)
             # (stack,seq_len,n_layers,mem_size) * (stack,seq_len,n_layers,1) -> (stack,seq_len,n_layers,mem_size)
             data = mx.sym.broadcast_mul(enc_states, act_probs)
             # (stack,seq_len,mem_size)
-            data = mx.sym.sum(data, axis=-2, name="soft_act_sum")
+            data = mx.sym.sum(data, axis=-2, name="%ssoft_act_sum" % self.prefix)
         else:
             for i, layer in enumerate(self.layers):
                 # (batch_size, seq_len, config.model_size)
